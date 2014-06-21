@@ -1,0 +1,43 @@
+%This code was written by Cody Neuburger cneuburg@fau.edu
+%Florida Atlantic University, Florida USA
+%This code was adapted and cleaned from Anand Mishra's multisvm function
+%found at http://www.mathworks.com/matlabcentral/fileexchange/33170-multi-class-support-vector-machine/
+
+% trying out an SVM
+
+load('features.mat', 'Features');
+
+GroupTrain = Features{2};
+TrainingSet = Features{1};
+
+load('testSet.mat', 'Features');
+
+TestSet = Features{1};
+
+uniqueGroups = unique(GroupTrain);
+numClasses = length(uniqueGroups); 
+result = zeros(length(TestSet(:,1)),1);
+
+%build models 
+models = zeros(1,numClasses);
+for k = 1:numClasses 
+    %Vectorized statement that binarizes Group 
+    %where 1 is the current class and 0 is all other classes 
+    GroupTrain{1}
+    uniqueGroups{k}
+    G1vAll = (GroupTrain==uniqueGroups{k});
+    models(k) = svmtrain(TrainingSet,G1vAll,'kernel_function','rbf'); 
+end
+
+%classify test cases 
+for j=1:size(TestSet,1) % go elem by elem
+    for k=1:numClasses % try all models
+        if(svmclassify(models(k),TestSet(j,:))) 
+            break; 
+        end 
+    end 
+    result(j) = k; 
+end
+
+disp(result);
+disp(Features{2});
