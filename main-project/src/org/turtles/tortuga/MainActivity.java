@@ -108,6 +108,8 @@ public class MainActivity extends ActionBarActivity {
 		    	
 		    	System.out.println("starting fft");
 		    	f.fft(real, imaginary);
+		    	FeatureExtractor features = new FeatureExtractor(real, imaginary);
+		    	
 		    	System.out.println("finished fft, printing out results");
 		    	//StringBuffer output = new StringBuffer();
 		    	for (int i = 0; i < 256; i++) {
@@ -222,4 +224,41 @@ public class MainActivity extends ActionBarActivity {
 		public void onPeriodicNotification(AudioRecord arg0) {
 		}
 	}
+<<<<<<< HEAD
 */}
+=======
+	
+	private class FeatureExtractor {
+		
+		public double avg;
+		public double std;
+		public double total;
+		public double max;
+		public double maxFreq;
+		
+		FeatureExtractor(double[] real, double[] imaginary) {
+			this.total = 0;
+			double totalSqrd = 0;
+			int maxFrqIndx = 0;
+			double maxFreqMag = 0;
+			
+			// iter through data, extract max and keep track of running sum
+	    	for (int i = 0; i < real.length; i++) {
+	    		double mag = real[i] * real[i] + imaginary[i] * imaginary[i];
+	    		this.total += Math.sqrt(mag);
+	    		totalSqrd += mag;
+	    		
+	    		if (mag > maxFreq) {
+	    			maxFreq = mag;
+	    			maxFrqIndx = i;
+	    		}
+	    	}
+	    	
+	    	this.avg = this.total / real.length;
+	    	this.std = (totalSqrd / real.length) - Math.pow(this.avg,2);
+	    	this.max = maxFreq;
+	    	this.maxFreq = maxFrqIndx;
+		}
+	}
+}
+>>>>>>> 0fa60981fce5a0629476b3b2d3379428ca8df2b5

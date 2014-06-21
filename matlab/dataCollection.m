@@ -1,0 +1,104 @@
+% Collect data
+clear all
+close all
+
+DEBUG = false;
+
+EXPORT_FILE = 'features-3.mat';
+%EXPORT_FILE = 'testSet-3.mat';
+
+nSamplesPerType = 10;
+groups = {'Knuckles', 'Thumb', 'Palm', 'Fist', 'None'};
+
+Fs = 44100;
+winSize = 4096;
+tapTime = 2; % enough for one fft
+nFreq = 100; % get bottom 100 samples
+audioLen = Fs * tapTime;
+
+recObj = audiorecorder(Fs, 16, 1);
+recordblocking(recObj, tapTime);
+
+% Record audio
+% build audioData with row per sample
+audioData = zeros(length(groups)*nSamplesPerType,audioLen);
+pause;
+for ig = 1:length(groups)
+    grp = groups(ig);
+    
+    disp(grp);
+    
+    for i = 1:nSamplesPerType
+       disp(i);
+       disp('tap');
+       
+       recordblocking(recObj, tapTime);
+       data = getaudiodata(recObj);
+       audioData((ig-1)*nSamplesPerType + i, :) = data';
+
+       if DEBUG
+           figure(1);
+           spectrogram(data,ones(1, winSize),0,winSize, Fs, 'yaxis');
+           t = [grp, int2str(i)];
+           title(t);
+       end
+           
+       disp('done');
+       pause;
+    end
+    
+end
+
+
+% Extract features
+disp('features');
+nSamples = size(audioData,1)
+Avgs = zeros(nSamples,1);
+StdDevs = zeros(nSamples,1);
+TotalPower = zeros(nSamples,1);
+MaxPower = zeros(nSamples,1);
+MaxPowerFreq = zeros(nSamples,1);
+FreqSamples = zeros(nSamples,nFreq);
+Classifier = cell(nSamples,1);
+pause
+for i = 1:nSamples % iter through collected samples
+    
+    % get spectragram and ignore first part
+    [S, F, T, P] = spectrogram(audioData(i,:),ones(1, winSize),0,winSize, Fs, 'yaxis');
+
+    % only use highest power content section
+    nBuckets = length(T);
+    maxBucketPower = 0;
+    maxBucket = 0;
+    for b = 2:nBuckets % start looking about .5 sec in
+        x = P(:,b);
+        
+        bucketPower = sum(x);
+        if bucketPower >= maxBucketPower
+            maxBucketPower = bucketPower;
+            maxBucket = b;
+        end
+    end
+        
+    X = S(:,maxBucket);
+
+    x = abs(X);
+    Avgs(i) = mean(x);
+    StdDevs(i) = std(x);
+    TotalPower(i) = sum(x);
+    [MaxPower(i), ind] = max(x);
+    MaxPowerFreq(i) = F(ind); 
+    FreqSamples(i,:) = x(1:nFreq)';
+
+    % classifier name
+    ind = uint8(floor((i-1) / nSamplesPerType)) + 1;
+    Classifier{i} = groups{ind};
+end
+
+% Save
+disp('save');
+Features = {[Avgs, StdDevs, TotalPower, MaxPower, MaxPowerFreq],
+    Classifier};
+
+save(EXPORT_FILE,'Features');
+
