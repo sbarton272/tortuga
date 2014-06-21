@@ -1,3 +1,5 @@
+Usage
+
 For now it's just a class that does some things with Weka.
 Data from http://www.cs.ubc.ca/labs/beta/Projects/autoweka/datasets/
 Note that make amazon runs much slower than make wine.
@@ -6,4 +8,18 @@ make: compiles the thing
 make clean: deletes class files
 make wine: run stuff on wine data
 make amazon: run stuff on amazon data
+
+================================================================================
+
+Training
+
+We probably want to gather our data as a single training file in arff format.
+Every time a new tap is recorded, we perform the necessary analysis on the
+audio/accelerometer data and append a fixed number of fourier coefficients (and
+any other needed data) to the training file. arff format supports enums as well
+as reals, in case that's useful.
+
+It might be a good idea to have an empty arff training file template stored
+somewhere which contains the relation and attributes and no data, in case we
+want to clear our training data.
 
