@@ -23,7 +23,6 @@ public class FFT {
 			cos[i] = Math.cos(-2 * Math.PI * i / n);
 			sin[i] = Math.sin(-2 * Math.PI * i / n);
 		}
-
 	}
 
 	public void fft(double[] x, double[] y) {

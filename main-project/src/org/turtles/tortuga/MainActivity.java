@@ -3,6 +3,9 @@ package org.turtles.tortuga;
 import java.util.Arrays;
 
 import android.annotation.SuppressLint;
+import java.util.ArrayList;
+import java.util.List;
+
 import android.content.Context;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
@@ -30,9 +33,11 @@ public class MainActivity extends ActionBarActivity implements SensorEventListen
     private Sensor mAccelerometer;
     private AudioRecord mAudioRecorder;
     
-    private static final int RECORDER_SAMPLE_RATE = 8000;
+    private static final int RECORDER_SAMPLE_RATE = 44100;
     private static final int AUDIO_BUFFER_SIZE = 4096;
     private byte[] audioBuffer = new byte[AUDIO_BUFFER_SIZE];
+    private List<Double> zMeasurements = new ArrayList<Double>();
+    private static Boolean shouldRecord = false;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -48,23 +53,52 @@ public class MainActivity extends ActionBarActivity implements SensorEventListen
 	            RECORDER_SAMPLE_RATE, AudioFormat.CHANNEL_IN_MONO,
 	            AudioFormat.ENCODING_PCM_16BIT, AUDIO_BUFFER_SIZE);
 		
+		mAudioRecorder.read(audioBuffer, 0, AUDIO_BUFFER_SIZE);
+		mAudioRecorder.setNotificationMarkerPosition(10000);
+		mAudioRecorder.setPositionNotificationPeriod(1000);
 		mAudioRecorder.setRecordPositionUpdateListener(new PeriodicListener());
-		mAudioRecorder.setPositionNotificationPeriod(100);
 		mAudioRecorder.startRecording();
 		
 		mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
 		mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
 		mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_NORMAL);
-		
 	}
 	
 	@Override
 	public void onSensorChanged(SensorEvent event) {
-		float x = event.values[0];
-	    float y = event.values[1];
-	    float z = event.values[2];
-	    
-	    //System.out.println(x + ", " + y + ", " + z);
+		if (shouldRecord) {
+			float x = event.values[0];
+		    float y = event.values[1];
+		    float z = event.values[2];
+		    zMeasurements.add((double)z);
+		    System.out.println("captured sample #" + zMeasurements.size());
+		    final int limit = 256;
+		    if (zMeasurements.size() == limit) {
+		    	shouldRecord = false;		    	
+		    	FFT f = new FFT(limit);
+		    	
+		    	double[] imaginary = new double[limit]; 
+		    	double[] real = new double[limit];
+		    	Double[] measurements = new Double[0];
+		    	measurements = zMeasurements.toArray(measurements);
+		    	for (int i = 0; i < limit; i++) {
+		    		real[i] = measurements[i];
+		    	}
+		    	
+		    	System.out.println("starting fft");
+		    	f.fft(real, imaginary);
+		    	System.out.println("finished fft, printing out results");
+		    	//StringBuffer output = new StringBuffer();
+		    	for (int i = 0; i < 256; i++) {
+		    		System.out.println(Math.sqrt(real[i] * real[i] + imaginary[i] * imaginary[i]));
+		    		//output.append(real[i] + " + " + imaginary[i] + "i\n");
+		    		//System.out.println(real[i] + " + " + imaginary[i] + "i\n");
+		    	}
+		    	//System.out.println(output);
+		    	System.out.println("finished printing out results");
+		    }
+		    //System.out.println(x + ", " + y + ", " + z);
+		}
 	}
 	
 	@Override
@@ -115,7 +149,6 @@ public class MainActivity extends ActionBarActivity implements SensorEventListen
 			
 			final Button button1 = (Button) rootView.findViewById(R.id.button1);
 	         button1.setOnClickListener(new View.OnClickListener() {
-	             @SuppressLint("NewApi")
 				public void onClick(View v) {
 	            	 webview.loadUrl("javascript:emuLeft();");
 	                 // Perform action on click
@@ -123,7 +156,6 @@ public class MainActivity extends ActionBarActivity implements SensorEventListen
 	         });
 	         final Button button2 = (Button) rootView.findViewById(R.id.button2);
 	         button2.setOnClickListener(new View.OnClickListener() {
-	             @SuppressLint("NewApi")
 				public void onClick(View v) {
 	            	 webview.loadUrl("javascript:emuUp();");
 	                 // Perform action on click
@@ -131,7 +163,6 @@ public class MainActivity extends ActionBarActivity implements SensorEventListen
 	         });
 	         final Button button3 = (Button) rootView.findViewById(R.id.button3);
 	         button3.setOnClickListener(new View.OnClickListener() {
-	             @SuppressLint("NewApi")
 				public void onClick(View v) {
 	            	 webview.loadUrl("javascript:emuDown();");
 	                 // Perform action on click
@@ -139,13 +170,23 @@ public class MainActivity extends ActionBarActivity implements SensorEventListen
 	         });
 	         final Button button4 = (Button) rootView.findViewById(R.id.button4);
 	         button4.setOnClickListener(new View.OnClickListener() {
-	             @SuppressLint("NewApi")
 				public void onClick(View v) {
 	            	 webview.loadUrl("javascript:emuRight();");
 	                 // Perform action on click
 	             }
 	         });
 			
+	         final Button btnRecord = (Button)rootView.findViewById(R.id.btnRecord);
+	         btnRecord.setOnClickListener(new View.OnClickListener() {
+	        	 public void onClick(View v) {
+	        		 if (!shouldRecord) {
+	        			 shouldRecord = true; 
+	        			 System.out.println("started capturing samples...");
+	        		 }
+	        	 }
+	         });
+	         
+	         
 			return rootView;
 		}
 	}
@@ -157,7 +198,6 @@ public class MainActivity extends ActionBarActivity implements SensorEventListen
 			// TODO Auto-generated method stub
 			
 			System.out.println("Hello");
-			
 		}
 
 		@Override

@@ -57,4 +57,12 @@
         android:layout_below="@+id/textView1"
         android:layout_marginTop="18dp" />
 
+    <Button
+        android:id="@+id/btnRecord"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/button3"
+        android:layout_alignRight="@+id/button4"
+        android:text="Record" />
+
 </RelativeLayout>
