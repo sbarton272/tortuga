@@ -27,7 +27,7 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.widget.Button;
 
-public class MainActivity extends ActionBarActivity implements SensorEventListener {
+public class MainActivity extends ActionBarActivity {
 	
 	private SensorManager mSensorManager;
     private Sensor mAccelerometer;
@@ -54,25 +54,38 @@ public class MainActivity extends ActionBarActivity implements SensorEventListen
 	            AudioFormat.ENCODING_PCM_16BIT, AudioRecord.getMinBufferSize(RECORDER_SAMPLE_RATE, AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT));
 		
 		mAudioRecorder.read(audioBuffer, 0, AUDIO_BUFFER_SIZE);
-		mAudioRecorder.setNotificationMarkerPosition(10000);
+		/*mAudioRecorder.setNotificationMarkerPosition(10000);
 		mAudioRecorder.setPositionNotificationPeriod(1000);
-		mAudioRecorder.setRecordPositionUpdateListener(new PeriodicListener());
+		mAudioRecorder.setRecordPositionUpdateListener(new PeriodicListener());*/
 		mAudioRecorder.startRecording();
 		
 		new Thread(new Runnable() {
 	        public void run() {
 	            while(true) {
 	            	mAudioRecorder.read(audioBuffer, 0, AUDIO_BUFFER_SIZE);
+	            	FFT f = new FFT(AUDIO_BUFFER_SIZE);
+	            	
+	            	double[] real = new double[AUDIO_BUFFER_SIZE];
+	            	double[] imaginary = new double[AUDIO_BUFFER_SIZE];
+	            	double[] fft_result = new double[AUDIO_BUFFER_SIZE];
+	            	
+	            	for (int i= 0; i < AUDIO_BUFFER_SIZE; i++) {
+	            		real[i] = (double) audioBuffer[i];
+	            	}
+	            	f.fft(real, imaginary);
+	            	for (int i = 0; i < AUDIO_BUFFER_SIZE; i++) {
+			    		fft_result[i] = Math.sqrt(real[i] * real[i] + imaginary[i] * imaginary[i]);
+			    	}
 	            }
 	        }
 	    }).start();
 		
-		mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+		/*mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
 		mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-		mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_NORMAL);
+		mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_NORMAL);*/
 	}
 	
-	@Override
+/*	@Override
 	public void onSensorChanged(SensorEvent event) {
 		if (shouldRecord) {
 			float x = event.values[0];
@@ -112,7 +125,7 @@ public class MainActivity extends ActionBarActivity implements SensorEventListen
 	@Override
 	public void onAccuracyChanged(Sensor sensor, int accuracy) {
 	 
-	}
+	}*/
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
@@ -199,20 +212,14 @@ public class MainActivity extends ActionBarActivity implements SensorEventListen
 		}
 	}
 	
-	public class PeriodicListener implements OnRecordPositionUpdateListener {
+/*	public class PeriodicListener implements OnRecordPositionUpdateListener {
 
 		@Override
 		public void onMarkerReached(AudioRecord arg0) {
-			// TODO Auto-generated method stub
-			
-			System.out.println("Hello");
 		}
 
 		@Override
 		public void onPeriodicNotification(AudioRecord arg0) {
-			
-			System.out.println("Hello2");
-			System.out.println(Arrays.toString(audioBuffer));
 		}
 	}
-}
+*/}
