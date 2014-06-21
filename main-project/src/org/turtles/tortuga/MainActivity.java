@@ -51,7 +51,7 @@ public class MainActivity extends ActionBarActivity implements SensorEventListen
 		
 		mAudioRecorder = new AudioRecord(MediaRecorder.AudioSource.MIC,
 	            RECORDER_SAMPLE_RATE, AudioFormat.CHANNEL_IN_MONO,
-	            AudioFormat.ENCODING_PCM_16BIT, AUDIO_BUFFER_SIZE);
+	            AudioFormat.ENCODING_PCM_16BIT, AudioRecord.getMinBufferSize(RECORDER_SAMPLE_RATE, AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT));
 		
 		mAudioRecorder.read(audioBuffer, 0, AUDIO_BUFFER_SIZE);
 		mAudioRecorder.setNotificationMarkerPosition(10000);
@@ -61,7 +61,9 @@ public class MainActivity extends ActionBarActivity implements SensorEventListen
 		
 		new Thread(new Runnable() {
 	        public void run() {
-	            // thread here
+	            while(true) {
+	            	mAudioRecorder.read(audioBuffer, 0, AUDIO_BUFFER_SIZE);
+	            }
 	        }
 	    }).start();
 		
@@ -210,7 +212,6 @@ public class MainActivity extends ActionBarActivity implements SensorEventListen
 		public void onPeriodicNotification(AudioRecord arg0) {
 			
 			System.out.println("Hello2");
-			mAudioRecorder.read(audioBuffer, 0, AUDIO_BUFFER_SIZE);
 			System.out.println(Arrays.toString(audioBuffer));
 		}
 	}
