@@ -59,6 +59,12 @@ public class MainActivity extends ActionBarActivity implements SensorEventListen
 		mAudioRecorder.setRecordPositionUpdateListener(new PeriodicListener());
 		mAudioRecorder.startRecording();
 		
+		new Thread(new Runnable() {
+	        public void run() {
+	            // thread here
+	        }
+	    }).start();
+		
 		mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
 		mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
 		mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_NORMAL);
