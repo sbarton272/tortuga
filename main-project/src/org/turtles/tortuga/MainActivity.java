@@ -24,6 +24,7 @@ public class MainActivity extends ActionBarActivity {
 	}
 	
     private static Boolean shouldRecord = false;
+    private static FileManager fileManager = null;
     
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -34,8 +35,6 @@ public class MainActivity extends ActionBarActivity {
 			getSupportFragmentManager().beginTransaction()
 					.add(R.id.container, new PlaceholderFragment()).commit();
 		}
-		
-		
 		
 		/*mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
 		mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
@@ -196,6 +195,8 @@ public class MainActivity extends ActionBarActivity {
 	        		 tm.show();
 	        	 }
 	         });
+	         
+	 		fileManager = new FileManager("training.arff", getActivity());
 	         
 			return rootView;
 		}
