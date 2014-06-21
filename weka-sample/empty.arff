@@ -1,0 +1,9 @@
+@relation empty
+
+@attribute numericfield numeric
+@attribute realfield real
+@attribute enumfield {a, b}
+
+@data
+
+1,2.3,a
