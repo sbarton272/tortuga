@@ -1,5 +1,7 @@
 package org.turtles.tortuga;
 
+import android.content.Context;
+
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -11,29 +13,25 @@ public class FileManager {
 	
 	FileOutputStream fos;
 	
-	public FileManager(String filename, Context context) {		
-		try {
-			this.fos = openFileOutput(filename, context.MODE_PRIVATE);
-			initializeFile();
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+	public FileManager(String filename, Context context) throws IOException {		
+		this.fos = context.openFileOutput(filename, context.MODE_PRIVATE);
+		initializeFile();
 	}
 	
 	public void initializeFile() throws IOException {
-		
-		fos.write("@relation training".getBytes());
-		fos.write("@attribute numericfield avg".getBytes());
-		fos.write("@attribute numericfield std".getBytes());
-		fos.write("@attribute numericfield total".getBytes());
-		fos.write("@attribute numericfield maxFreq".getBytes());
-		fos.write("@attribute numericfield maxFreqIndex".getBytes());
+		fos.write("@relation training\n".getBytes());
+		fos.write("@attribute avg real\n".getBytes());
+		fos.write("@attribute std real\n".getBytes());
+		fos.write("@attribute total real\n".getBytes());
+		fos.write("@attribute maxFreq real\n".getBytes());
+		fos.write("@attribute maxFreqIndex real\n".getBytes());
+		fos.write("@attribute class {right, down, left, up, none}\n\n".getBytes());
+		fos.write("@data\n".getBytes());
 	}
 	
-	public void addDataToFile(int avg, int std, int total, int maxFreq, int maxFreqIndex) throws IOException {
-		
-		String string = avg + "," + std + "," + total + "," + maxFreq + "," + maxFreqIndex;
+	public void append(double avg, double std, double total, double maxFreq, double maxFreqIndex, String classname) throws IOException {
+		String string = "\n" + avg + "," + std + "," + total + "," + maxFreq + "," + maxFreqIndex + "," + classname;
+		System.out.println(string);
 		fos.write(string.getBytes());
 	}
 	

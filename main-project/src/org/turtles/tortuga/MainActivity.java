@@ -2,8 +2,10 @@ package org.turtles.tortuga;
 
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.IOException;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -20,11 +22,11 @@ import android.widget.TextView;
 
 public class MainActivity extends ActionBarActivity {
 	public enum Direction {
-		RIGHT, DOWN, LEFT, UP
+		RIGHT, DOWN, LEFT, UP, NONE
 	}
 	
     private static Boolean shouldRecord = false;
-    private static FileManager fileManager = null;
+    public static FileManager fileManager = null;
     
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -116,27 +118,33 @@ public class MainActivity extends ActionBarActivity {
 	@SuppressLint("SetJavaScriptEnabled")
 	public static class PlaceholderFragment extends Fragment {
 
-		View rootView;
+		private static View rootView;
+		private static Activity activity;
 		public PlaceholderFragment() {
 		}
 		
-		public void emulateDirection(Direction d) {
-			final WebView wv = (WebView)rootView.findViewById(R.id.webView1);
-			switch (d) {
-			case RIGHT:
-				wv.loadUrl("javascript:emuRight();");
-				break;
-			case DOWN:
-				wv.loadUrl("javascript:emuDown();");
-				break;
-			case LEFT:
-				wv.loadUrl("javascript:emuLeft();");
-				break;
-			case UP:
-				wv.loadUrl("javascript:emuUp();");
-				break;
-				default: break;
-			}
+		public static void emulateDirection(final Direction d) {
+			activity.runOnUiThread(new Runnable() {
+				@Override
+				public void run() {
+					final WebView wv = (WebView)rootView.findViewById(R.id.webView1);
+					switch (d) {
+					case RIGHT:
+						wv.loadUrl("javascript:emuRight();");
+						break;
+					case DOWN:
+						wv.loadUrl("javascript:emuDown();");
+						break;
+					case LEFT:
+						wv.loadUrl("javascript:emuLeft();");
+						break;
+					case UP:
+						wv.loadUrl("javascript:emuUp();");
+						break;
+						default: break;
+					}					
+				}
+			});
 		}
 
 		@Override
@@ -196,7 +204,14 @@ public class MainActivity extends ActionBarActivity {
 	        	 }
 	         });
 	         
-	 		fileManager = new FileManager("training.arff", getActivity());
+	 		try {
+				fileManager = new FileManager("training.arff", getActivity());
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+	 		
+	 		activity = getActivity();
 	         
 			return rootView;
 		}
