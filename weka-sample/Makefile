@@ -8,7 +8,9 @@ default: classes
 classes: $(CLASSES:.java=.class)
 clean:
 	/bin/rm *.class
-wine:
-	java -cp ".:weka.jar:libsvm3.jar" StartWeka "winequalitywhite-data/train.arff"
-amazon:
-	java -cp ".:weka.jar:libsvm3.jar" StartWeka "amazon-data/train.arff"
+run:
+	java -cp ".:weka.jar:libsvm3.jar" StartWeka
+#car:
+#	java -cp ".:weka.jar:libsvm3.jar" StartWeka "car-data/train.arff"
+#wine:
+#	java -cp ".:weka.jar:libsvm3.jar" StartWeka "winequalitywhite-data/train.arff"

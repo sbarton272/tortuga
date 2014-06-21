@@ -1,9 +1,9 @@
 @relation empty
 
-@attribute numericfield numeric
-@attribute realfield real
-@attribute enumfield {a, b}
+@attribute coefficient1 real
+@attribute coefficient2 real
+@attribute class {up, right, down, left}
 
 @data
 
-1,2.3,a
+1.2,3.4,up

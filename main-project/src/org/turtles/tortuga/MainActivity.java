@@ -1,20 +1,10 @@
 package org.turtles.tortuga;
 
-import java.util.Arrays;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 
 import android.annotation.SuppressLint;
-import java.util.ArrayList;
-import java.util.List;
-
 import android.content.Context;
-import android.hardware.Sensor;
-import android.hardware.SensorEvent;
-import android.hardware.SensorEventListener;
-import android.hardware.SensorManager;
-import android.media.AudioFormat;
-import android.media.AudioRecord;
-import android.media.AudioRecord.OnRecordPositionUpdateListener;
-import android.media.MediaRecorder;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.ActionBarActivity;
@@ -26,19 +16,15 @@ import android.view.ViewGroup;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.widget.Button;
+import android.widget.TextView;
 
 public class MainActivity extends ActionBarActivity {
+	public enum Direction {
+		RIGHT, DOWN, LEFT, UP
+	}
 	
-	private SensorManager mSensorManager;
-    private Sensor mAccelerometer;
-    private AudioRecord mAudioRecorder;
-    
-    private static final int RECORDER_SAMPLE_RATE = 44100;
-    private static final int AUDIO_BUFFER_SIZE = 4096;
-    private byte[] audioBuffer = new byte[AUDIO_BUFFER_SIZE];
-    private List<Double> zMeasurements = new ArrayList<Double>();
     private static Boolean shouldRecord = false;
-	
+    
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -49,36 +35,7 @@ public class MainActivity extends ActionBarActivity {
 					.add(R.id.container, new PlaceholderFragment()).commit();
 		}
 		
-		mAudioRecorder = new AudioRecord(MediaRecorder.AudioSource.MIC,
-	            RECORDER_SAMPLE_RATE, AudioFormat.CHANNEL_IN_MONO,
-	            AudioFormat.ENCODING_PCM_16BIT, AudioRecord.getMinBufferSize(RECORDER_SAMPLE_RATE, AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT));
 		
-		mAudioRecorder.read(audioBuffer, 0, AUDIO_BUFFER_SIZE);
-		/*mAudioRecorder.setNotificationMarkerPosition(10000);
-		mAudioRecorder.setPositionNotificationPeriod(1000);
-		mAudioRecorder.setRecordPositionUpdateListener(new PeriodicListener());*/
-		mAudioRecorder.startRecording();
-		
-		new Thread(new Runnable() {
-	        public void run() {
-	            while(true) {
-	            	mAudioRecorder.read(audioBuffer, 0, AUDIO_BUFFER_SIZE);
-	            	FFT f = new FFT(AUDIO_BUFFER_SIZE);
-	            	
-	            	double[] real = new double[AUDIO_BUFFER_SIZE];
-	            	double[] imaginary = new double[AUDIO_BUFFER_SIZE];
-	            	double[] fft_result = new double[AUDIO_BUFFER_SIZE];
-	            	
-	            	for (int i= 0; i < AUDIO_BUFFER_SIZE; i++) {
-	            		real[i] = (double) audioBuffer[i];
-	            	}
-	            	f.fft(real, imaginary);
-	            	for (int i = 0; i < AUDIO_BUFFER_SIZE; i++) {
-			    		fft_result[i] = Math.sqrt(real[i] * real[i] + imaginary[i] * imaginary[i]);
-			    	}
-	            }
-	        }
-	    }).start();
 		
 		/*mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
 		mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
@@ -91,6 +48,11 @@ public class MainActivity extends ActionBarActivity {
 			float x = event.values[0];
 		    float y = event.values[1];
 		    float z = event.values[2];
+		    
+		    tvXAxis.setText("x: " + String.valueOf(x));
+		    tvYAxis.setText("y: " + String.valueOf(y));
+		    tvZAxis.setText("z: " + String.valueOf(z));
+		    
 		    zMeasurements.add((double)z);
 		    System.out.println("captured sample #" + zMeasurements.size());
 		    final int limit = 256;
@@ -155,47 +117,65 @@ public class MainActivity extends ActionBarActivity {
 	@SuppressLint("SetJavaScriptEnabled")
 	public static class PlaceholderFragment extends Fragment {
 
+		View rootView;
 		public PlaceholderFragment() {
+		}
+		
+		public void emulateDirection(Direction d) {
+			final WebView wv = (WebView)rootView.findViewById(R.id.webView1);
+			switch (d) {
+			case RIGHT:
+				wv.loadUrl("javascript:emuRight();");
+				break;
+			case DOWN:
+				wv.loadUrl("javascript:emuDown();");
+				break;
+			case LEFT:
+				wv.loadUrl("javascript:emuLeft();");
+				break;
+			case UP:
+				wv.loadUrl("javascript:emuUp();");
+				break;
+				default: break;
+			}
 		}
 
 		@Override
 		public View onCreateView(LayoutInflater inflater, ViewGroup container,
 				Bundle savedInstanceState) {
-			View rootView = inflater.inflate(R.layout.fragment_main, container,
+			rootView = inflater.inflate(R.layout.fragment_main, container,
 					false);
 			
 			final WebView webview = (WebView)rootView.findViewById(R.id.webView1);
 			WebSettings websettings = webview.getSettings();
 			websettings.setJavaScriptEnabled(true);
 			
+			webview.clearCache(true);
 			webview.loadUrl("http://tkatzen.github.io/2048/");
+			webview.setOnTouchListener(null);
 			
 			final Button button1 = (Button) rootView.findViewById(R.id.button1);
 	         button1.setOnClickListener(new View.OnClickListener() {
 				public void onClick(View v) {
-	            	 webview.loadUrl("javascript:emuLeft();");
-	                 // Perform action on click
+					emulateDirection(Direction.LEFT);
 	             }
 	         });
 	         final Button button2 = (Button) rootView.findViewById(R.id.button2);
 	         button2.setOnClickListener(new View.OnClickListener() {
 				public void onClick(View v) {
-	            	 webview.loadUrl("javascript:emuUp();");
-	                 // Perform action on click
+					emulateDirection(Direction.UP);
 	             }
 	         });
 	         final Button button3 = (Button) rootView.findViewById(R.id.button3);
 	         button3.setOnClickListener(new View.OnClickListener() {
 				public void onClick(View v) {
-	            	 webview.loadUrl("javascript:emuDown();");
-	                 // Perform action on click
+					emulateDirection(Direction.DOWN);
 	             }
 	         });
 	         final Button button4 = (Button) rootView.findViewById(R.id.button4);
 	         button4.setOnClickListener(new View.OnClickListener() {
 				public void onClick(View v) {
-	            	 webview.loadUrl("javascript:emuRight();");
-	                 // Perform action on click
+					emulateDirection(Direction.RIGHT);
 	             }
 	         });
 			
@@ -209,6 +189,13 @@ public class MainActivity extends ActionBarActivity {
 	        	 }
 	         });
 	         
+	         final Button btnConfigure = (Button)rootView.findViewById(R.id.btnConfigure);
+	         btnConfigure.setOnClickListener(new View.OnClickListener() {
+	        	 public void onClick(View v) {
+	        		 TrainingManager tm = new TrainingManager(getActivity());
+	        		 tm.show();
+	        	 }
+	         });
 	         
 			return rootView;
 		}
@@ -224,41 +211,5 @@ public class MainActivity extends ActionBarActivity {
 		public void onPeriodicNotification(AudioRecord arg0) {
 		}
 	}
-<<<<<<< HEAD
-*/}
-=======
-	
-	private class FeatureExtractor {
-		
-		public double avg;
-		public double std;
-		public double total;
-		public double max;
-		public double maxFreq;
-		
-		FeatureExtractor(double[] real, double[] imaginary) {
-			this.total = 0;
-			double totalSqrd = 0;
-			int maxFrqIndx = 0;
-			double maxFreqMag = 0;
-			
-			// iter through data, extract max and keep track of running sum
-	    	for (int i = 0; i < real.length; i++) {
-	    		double mag = real[i] * real[i] + imaginary[i] * imaginary[i];
-	    		this.total += Math.sqrt(mag);
-	    		totalSqrd += mag;
-	    		
-	    		if (mag > maxFreq) {
-	    			maxFreq = mag;
-	    			maxFrqIndx = i;
-	    		}
-	    	}
-	    	
-	    	this.avg = this.total / real.length;
-	    	this.std = (totalSqrd / real.length) - Math.pow(this.avg,2);
-	    	this.max = maxFreq;
-	    	this.maxFreq = maxFrqIndx;
-		}
-	}
+*/
 }
->>>>>>> 0fa60981fce5a0629476b3b2d3379428ca8df2b5
